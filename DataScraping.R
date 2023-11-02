@@ -23,7 +23,7 @@ create_sub_folders <- function(years) {
   years_seq <- seq(years[1],years[2],1)
   
   for (year in years_seq) {
-    dir.create(paste(getwd(),"/data/",year,sep=""))
+    dir.create(paste0(getwd(),"/data/",year,sep=""))
   }
   
 }
@@ -59,17 +59,11 @@ run_downloads <- function(years, download_links_list) {
   ## Downloads the files into the respective folder created by create_sub_folders
   years <- seq(years[1],years[2],1)
   lapply(download_links_list, FUN = function(link_vector) {
-    sapply(link_vector, FUN = function(link) {
-      download.file(link,)
+    sapply(link_vector, FUN = function(link, folder_year) {
+      date <- regmatches(link,regexpr("\\d{8}",link))
+      download.file(link,paste0(getwd(),"/data/", folder_year, date, ".tif",sep=""))
       Sys.sleep(1.5)
-    })
+    }, folder_year = names(download_links_list))
   })
-  
 } 
-
-
-debug(extract_all_datafiles)
-extract_all_datafiles(c(2010,2022),link)
-#download.file("https://agriculture.canada.ca/atlas/data_donnees/psssm/data_donnees/tif/absolute/2010/daily/GlobAv_SMUDP2_REPR_650_20100601_025K_M5.tif","downloadedex.tif")
-
 
