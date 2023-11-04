@@ -1,11 +1,39 @@
 library(terra)
 library(ggplot2)
 library(dplyr)
+library(plyr)
 
+
+
+path <- paste0(getwd(),"/data",sep="")
+
+moisture_data <- load_tif_pictures(path, file_type)
+cropyield_data <- load_cropyield_data(path)
+
+############## Load crop yield data (Canada Agriculture) ###############
+
+load_cropyield_data <- function(path) {
+  cropyield_path <- paste0(path, "/crop_data")
+  files_name_vec <- extract_files_vector(cropyield_path, file_type = NULL, recursive_set = F)
+  cropyield_list <- load_cropyield_list(files_name_vec)  
+  return(cropyield_list)
+}
+
+####
+
+load_cropyield_list <- function(files_name_vec) {
+  return_list <- list()
+  for (file_name in files_name_vec) {
+    file_name_current <- regmatches(file_name,regexpr("([a-zA-Z]+)_cropyields",file_name, ignore.case = TRUE))
+    return_list[[file_name_current]] <- read.csv(file_name, header = T)
+  }
+  return(return_list)
+}
+
+####
 
 ############## Load TIF Pictures (SMOS data) ###############
 
-path <- paste(getwd(),"/data",sep="")
 file_type = NULL
 
 load_tif_pictures <- function(initial_path, file_type) {
@@ -17,12 +45,7 @@ load_tif_pictures <- function(initial_path, file_type) {
   return(list_dates_data)
 }
 
-extract_files_vector <- function(initial_path, file_type = NULL) {
-  files <- list.files(initial_path, recursive = T, full.names = T)
-  if (!is.null(file_type))
-    files <- files[grep(file_type, files, ignore.case = TRUE)]
-  return(files)
-}
+####
 
 create_list_dates_data <- function(files_vec) {
   files_list <- list()
@@ -45,8 +68,15 @@ create_list_dates_data <- function(files_vec) {
   return(year_df_list)  
 }
 
+####
+
 ##########################################################################
 
+############## General Functions ##############
 
-load_tif_pictures(path, file_type)
-
+extract_files_vector <- function(initial_path, file_type = NULL, recursive_set = T) {
+  files <- list.files(initial_path, recursive = recursive_set, full.names = T)
+  if (!is.null(file_type))
+    files <- files[grep(file_type, files, ignore.case = TRUE)]
+  return(files)
+}
