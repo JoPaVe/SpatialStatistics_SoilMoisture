@@ -2,13 +2,11 @@ library(terra)
 library(ggplot2)
 library(dplyr)
 library(plyr)
-
-
+library(sf)
+library(parallel)
+library(raster)
 
 path <- paste0(getwd(),"/data",sep="")
-
-moisture_data <- load_tif_pictures(path, file_type)
-cropyield_data <- load_cropyield_data(path)
 
 ############## Load crop yield data (Canada Agriculture) ###############
 
@@ -34,13 +32,11 @@ load_cropyield_list <- function(files_name_vec) {
 
 ############## Load TIF Pictures (SMOS data) ###############
 
-file_type = NULL
-
 load_tif_pictures <- function(initial_path, file_type) {
   ## Load all tif pictures and store them in a list of data frames for each year
-  ## Output -> list(year): dataframe(x,y,date1,date2,....)
+  ## Output -> list(list(year): dataframe(x,y,date1,date2,....), rast_objects): 
   
-  files_vec <- extract_files_vector(initial_path, file_type = NULL) #Vector of files in directory
+  files_vec <- extract_files_vector(initial_path, file_type = file_type) #Vector of files in directory
   list_dates_data <- create_list_dates_data(files_vec)
   return(list_dates_data)
 }
@@ -49,6 +45,7 @@ load_tif_pictures <- function(initial_path, file_type) {
 
 create_list_dates_data <- function(files_vec) {
   files_list <- list()
+  rast_objects <- list()
   
   ## Rewrite for lapply
   for (file_path in files_vec) {
@@ -58,6 +55,7 @@ create_list_dates_data <- function(files_vec) {
     rast_df <- as.data.frame(rast_obj, xy = T)
     colnames(rast_df)[3] <- date_match
     files_list[[year_match]][[date_match]] <- rast_df
+    rast_objects[[date_match]] <- rast_obj
   }
   
   year_df_list <- lapply(files_list, function(sublist) {
@@ -65,10 +63,18 @@ create_list_dates_data <- function(files_vec) {
     return(year_df)
   })
 
-  return(year_df_list)  
+  return(list(year_df_list,rast_objects))  
 }
 
 ####
+
+############## Load small_area_data_regions.gdb ###############
+gdb_path <- paste0(path,"/small_area_data_regions.gdb")
+
+canada_layers <- st_layers(dsn = gdb_path)
+
+SADRegions2017 <- st_read(gdb_path, layer = "SADRegionsRDPI_2017")
+SADRegions2008_2015 <- st_read(gdb_path, layer = "SADRegionsRDPI_2008_2015")
 
 ##########################################################################
 
@@ -80,3 +86,9 @@ extract_files_vector <- function(initial_path, file_type = NULL, recursive_set =
     files <- files[grep(file_type, files, ignore.case = TRUE)]
   return(files)
 }
+
+
+file_type = ".tif"
+
+moisture_objects <- load_tif_pictures(path, ".tif")
+cropyield_data <- load_cropyield_data(path)
