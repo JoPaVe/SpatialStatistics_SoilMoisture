@@ -34,7 +34,7 @@ load_cropyield_list <- function(files_name_vec) {
 
 load_tif_pictures <- function(initial_path, file_type) {
   ## Load all tif pictures and store them in a list of data frames for each year
-  ## Output -> list(year): dataframe(x,y,date1,date2,....)
+  ## Output -> list(list(year): dataframe(x,y,date1,date2,....), rast_objects): 
   
   files_vec <- extract_files_vector(initial_path, file_type = file_type) #Vector of files in directory
   list_dates_data <- create_list_dates_data(files_vec)
@@ -45,6 +45,7 @@ load_tif_pictures <- function(initial_path, file_type) {
 
 create_list_dates_data <- function(files_vec) {
   files_list <- list()
+  rast_objects <- list()
   
   ## Rewrite for lapply
   for (file_path in files_vec) {
@@ -54,6 +55,7 @@ create_list_dates_data <- function(files_vec) {
     rast_df <- as.data.frame(rast_obj, xy = T)
     colnames(rast_df)[3] <- date_match
     files_list[[year_match]][[date_match]] <- rast_df
+    rast_objects[[date_match]] <- rast_obj
   }
   
   year_df_list <- lapply(files_list, function(sublist) {
@@ -61,7 +63,7 @@ create_list_dates_data <- function(files_vec) {
     return(year_df)
   })
 
-  return(year_df_list)  
+  return(list(year_df_list,rast_objects))  
 }
 
 ####
@@ -85,7 +87,8 @@ extract_files_vector <- function(initial_path, file_type = NULL, recursive_set =
   return(files)
 }
 
+
 file_type = ".tif"
 
-moisture_data <- load_tif_pictures(path, ".tif")
+moisture_objects <- load_tif_pictures(path, ".tif")
 cropyield_data <- load_cropyield_data(path)
