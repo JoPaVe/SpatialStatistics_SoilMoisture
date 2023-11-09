@@ -81,7 +81,7 @@ for (year in names(moisture_data)) {
     number_rows <- SARRegions_number_2017
   }
   for (SAD_id in 1:number_rows) {
-    mean_vec <- colMeans(subset(moisture_data[[year]], intersected_years_matrices[[year]][,SAD_id]), na.rm = F)
+    mean_vec <- colMeans(subset(moisture_data[[year]], intersected_years_matrices[[year]][,SAD_id]), na.rm = T)
     SAD_moisture[[year]][SAD_id,] <- mean_vec[3:dim(moisture_data[[year]])[2]]
     
   }
@@ -97,7 +97,7 @@ Saskatchewan_cropyield <- lapply(Saskatchewan_cropyield, FUN = function(df) {
 
 Saskatchewan_cropyield_to_merge <- lapply(Saskatchewan_cropyield, FUN = function(df) {
   df <- df |>
-  dplyr::select(c(REF_DATE, VALUE, SAD_id))
+  dplyr::select(c(REF_DATE, VALUE, SAD_ID))
 })
 
 Saskatchewan_cropyield_to_merge <- merge(Saskatchewan_cropyield_to_merge$canola_cropyields, Saskatchewan_cropyield_to_merge$wheat_cropyields, by = c("REF_DATE", "SAD_ID"))
