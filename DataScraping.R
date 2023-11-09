@@ -20,7 +20,7 @@ extract_all_datafiles <- function(years, start_link) {
 create_sub_folders <- function(years) {
   ## Create subfolders for each year in working directory in ./data/'year'.
   
-  years_seq <- seq(years[1],years[2],1)
+  years_seq <- seq(years[1],years[length(years)[2]],1)
   
   for (year in years_seq) {
     dir.create(paste0(getwd(),"/data/",year,sep=""))
@@ -31,7 +31,7 @@ create_sub_folders <- function(years) {
 generate_daily_links <- function(years, start_link) {
   ## Create vector of links for the daily data for each year.
   
-  years <- paste0(seq(years[1],years[2],1))
+  years <- paste0(seq(years[1],years[dim(years)[2]],1))
   daily_links <- paste0(link,years,"/daily/")
   return(daily_links)
 }
@@ -49,7 +49,7 @@ read_download_links <- function(years, daily_links) {
     download_endings_filtered <- download_endings_all[grep("\\.tif$",download_endings_all)]
     download_links_complete <- paste0(daily_links[year_count], download_endings_filtered)
     return_list[[toString(years[year_count])]] <- download_links_complete
-    Sys.sleep(2)
+    Sys.sleep(runif(1,0.5,2))
     print(toString(years[year_count]))
   }
   return(return_list)
@@ -62,11 +62,11 @@ run_downloads <- function(years, download_links_list) {
     sapply(download_links_list[[link_vector_count]], FUN = function(link, folder_year) {
       date <- regmatches(link,regexpr("\\d{8}",link))
       download.file(link,paste0(getwd(),"/data/", folder_year[link_vector_count],"/", date, ".tif",sep=""), mode = "wb")
-      Sys.sleep(2)
+      Sys.sleep(1)
       print(date)
     }, folder_year = names(download_links_list))
   })
 } 
-
-extract_all_datafiles(c(2010,2011), link)
+debug(extract_all_datafiles)
+extract_all_datafiles(c(2012,2013,2014), link)
 
