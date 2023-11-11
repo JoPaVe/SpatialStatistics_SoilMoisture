@@ -59,7 +59,12 @@ create_list_dates_data <- function(files_vec) {
       rast_df <- as.data.frame(rast_obj, xy = T)
       colnames(rast_df)[3] <- date_match
       
+      # Filter
       rast_df <- subset(rast_df,(rast_df$y > 48 & rast_df$y < 62) & (rast_df$x < -99 & rast_df$x > -115)) #crop dataset to lower size
+      rast_date <- ymd(date_match) 
+      if (month(rast_date) < 5 | month(rast_date) > 9) {
+        next
+      }
       
       files_list[[year_match]][[date_match]] <- rast_df
       rast_objects[[date_match]] <- rast_obj

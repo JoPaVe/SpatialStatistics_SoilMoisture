@@ -87,6 +87,39 @@ for (year in names(moisture_data)) {
   }
 }
 
+
+############## Gap-filled NaNs ###############
+
+# Rewrite this monster
+fill_missing <- function(year) {
+  missing_indices <- which(is.na(year), arr.ind = T)
+  if (all(missing_indices == 0)) {
+    return(year)
+  } 
+  for (i in 1:nrow(missing_indices)){
+    if ((missing_indices[i,2] > 1) & (missing_indices[i,2] < dim(year)[2])) {
+      if (is.na(year[i[1],missing_indices[i,2]+1]) | is.na(year[missing_indices[i,1],missing_indices[i,2]-1])) {
+        year[missing_indices[i,1],missing_indices[i,2]] <- NA
+      }
+      year[missing_indices[i,1],missing_indices[i,2]] <- (year[missing_indices[i,1],missing_indices[i,2]-1] + year[missing_indices[i,1],missing_indices[i,2]+1]) / 2
+    } else if (missing_indices[i,2] == 1) {
+      if (is.na(year[missing_indices[i,1],missing_indices[i,2]]+1)) {
+        year[missing_indices[i,1],missing_indices[i,2]] <- NA
+      }
+      year[missing_indices[i,1],missing_indices[i,2]] <- year[missing_indices[i,1],missing_indices[i,2] + 1]
+    } else if (i == dim(year)[2]) {
+      if (is.na(year[missing_indices[i,1],missing_indices[i,2]]-1)) {
+        year[missing_indices[i,1],missing_indices[i,2]] <- NA
+      }
+      year[missing_indices[i,1],missing_indices[i,2]] <- year[missing_indices[i,1],missing_indices[i,2] - 1]
+    }
+  }
+  return(year)
+}
+
+SAD_moisture_filled <- lapply(SAD_moisture, FUN = fill_missing)
+
+
 ############## Combine crop_yield data with yearly Dataframes of SAD_moisture ###############
 
 # Add column of SAD_id
@@ -104,13 +137,18 @@ Saskatchewan_cropyield_to_merge <- merge(Saskatchewan_cropyield_to_merge$canola_
 
 colnames(Saskatchewan_cropyield_to_merge) <- c("Year", "SAD_ID", "Canola_yield", "Wheat_yield")
 
-SAD_moisture_crop <- SAD_moisture
+SAD_moisture_crop <- SAD_moisture_filled
 
 for (year in names(moisture_data)) {
   merge_df_specific_year <- Saskatchewan_cropyield_to_merge |> 
     dplyr::filter(Year == as.integer(year)) |>
     dplyr::select(c(SAD_ID, Canola_yield, Wheat_yield))
-  SAD_moisture_crop[[year]] <- merge(SAD_moisture[[year]], merge_df_specific_year, by.x = 0, by.y = c("SAD_ID"))
+  SAD_moisture_crop[[year]] <- merge(SAD_moisture_filled[[year]], merge_df_specific_year, by.x = 0, by.y = c("SAD_ID"))
   SAD_moisture_crop[[year]] <- base::subset(SAD_moisture_crop[[year]], select = -c(Row.names))
 }
+
+############## Create dataframe for Iterative Chisquared ###############
+
+
+
 
