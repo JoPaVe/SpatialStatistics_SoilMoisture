@@ -3,7 +3,6 @@ library(httr)
 library(xml2)
 library(plyr)
 
-link <- "https://agriculture.canada.ca/atlas/data_donnees/psssm/data_donnees/tif/absolute/"
 
 extract_all_datafiles <- function(years, start_link) {
   ## Extract all files: 
@@ -64,6 +63,4 @@ run_downloads <- function(years, download_links_list) {
     }, folder_year = names(download_links_list))
   })
 } 
-
-extract_all_datafiles(c(2012,2013,2014), link)
 
