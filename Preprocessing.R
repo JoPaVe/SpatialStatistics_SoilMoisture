@@ -1,12 +1,4 @@
-library(dplyr)
-library(plyr)
-library(stringr)
-library(spData)
-library(sf)
-library(tidyr)
-library(terra)
-library(raster)
-library(lubridate)
+
 
 ############## Preprocessing crop yield data ###############
 
