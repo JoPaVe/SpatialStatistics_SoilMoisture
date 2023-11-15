@@ -56,5 +56,9 @@ if (any(cropyield_exist == T)) {
   )
 }
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 2cfce3dbcc15303736f79972b2cadba126707ace
 moisture_objects <- load_tif_pictures(path, ".tif", c(2011))
 
