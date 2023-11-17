@@ -247,12 +247,4 @@ merge_SAD_moisture_crop <- function(grouped_crops, moisture_counts_prepared) {
 }
 
 
-df <- create_iterativeCS_df("Canola_yield",
-                      sequence = "high_to_low",
-                      Saskatchewan_cropyield_to_merge,
-                      SAD_moisture_filled,
-                      c(2010,2011,2012),
-                      c(0,50,0.2),
-                      c(0.25,0.75))
-
 

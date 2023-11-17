@@ -87,6 +87,70 @@ get_SAD_layers <- function(path, spec = c("SAD2017", "SAD2008_2015")) {
 } 
 
 ##########################################################################
+############# Data loading for all files for preprocessing ###############
+##########################################################################
+
+## Shapefiles
+if (!file.exists(paste(getwd(),"/data/shapefiles/SAD2017/SADRegions2017_shape.shp", sep = ""))) {
+  SADRegions2017 <- get_SAD_layers(file_storage_path, "SAD2017")
+  st_write(SADRegions2017, paste(getwd(),"/data/shapefiles/SAD2017/SADRegions2017_shape.shp", sep = ""))
+} else {
+  SADRegions2017 <- st_read(paste(getwd(),"/data/shapefiles/SAD2017/SADRegions2017_shape.shp", sep = ""))
+  names(SADRegions2017)[5] <- "Shape"
+  st_geometry(SADRegions2017) <- "Shape"
+}
+
+if (!file.exists(paste(getwd(),"/data/shapefiles/SAD2008_2015/SADRegions2008_2015_shape.shp", sep = ""))) {
+  SADRegions2008_2015 <- get_SAD_layers(path, "SAD2008_2015")
+  st_write(SADRegions2017, paste(getwd(),"/data/shapefiles/SAD2008_2015/SADRegions2008_2015_shape.shp", sep = ""))
+} else {
+  SADRegions2008_2015 <- st_read(paste(getwd(),"/data/shapefiles/SAD2008_2015/SADRegions2008_2015_shape.shp", sep = ""))
+  names(SADRegions2008_2015)[5] <- "Shape"
+  st_geometry(SADRegions2008_2015) <- "Shape"
+}
+
+## Crop yields
+cropyield_exist <- c(!file.exists(paste(getwd(),"/data/shapefiles/cropyield/canola_cropyields.csv", sep = "")), !file.exists(paste(getwd(),"/data/shapefiles/cropyield/wheat_cropyields.csv", sep = "")))
+
+if (any(cropyield_exist == T)) {
+  cropyield_data <- load_cropyield_data(file_storage_path)
+  write.csv(cropyield_data$canola_cropyields, paste(getwd(),"/data/cropyield/canola_cropyields.csv", sep = ""))
+  write.csv(cropyield_data$wheat_cropyields, paste(getwd(),"/data/cropyield/wheat_cropyields.csv", sep = ""))
+} else {
+  cropyield_data <- list(
+    canola_cropyields = read.csv(paste(getwd(),"/data/cropyield/canola_cropyields.csv", sep = "")),
+    wheat_cropyields = read.csv(paste(getwd(),"/data/cropyield/wheat_cropyields.csv", sep = ""))
+  )
+}
+rm(list = c("cropyield_exist"))
+
+
+## Moisture data
+if (!file.exists(paste(getwd(),"/data/moisture_data/moisture_objects_data.xlsx", sep = ""))) {
+  #moisture_objects <- load_tif_pictures(file_storage_path, ".tif", c(2010:2022))
+  
+  moisture_xlsx <- createWorkbook()
+  for (df in 1:length(moisture_objects[[1]])) {
+    year <- names(moisture_objects[[1]])[df]
+    addWorksheet(moisture_xlsx, year)
+    writeDataTable(moisture_xlsx, sheet = year, x = moisture_objects[[1]][[df]])
+  }
+  saveWorkbook(moisture_xlsx, file = paste(getwd(),"/data/moisture_data/moisture_objects_data.xlsx", sep = ""))
+  
+  writeRaster(moisture_objects[[2]][[1]], paste(getwd(),"/data/moisture_data/moisture_objects_tif.tif", sep = ""), filetype = "GTiff", overwrite = T)
+  
+} else {
+  moisture_objects_data <- lapply(excel_sheets(paste(getwd(),"/data/moisture_data/moisture_objects_data.xlsx", sep = "")), function(year) {
+    read_excel(paste(getwd(),"/data/moisture_data/moisture_objects_data.xlsx", sep = ""), sheet = year)
+  }) 
+  names(moisture_objects_data) <- excel_sheets(paste(getwd(),"/data/moisture_data/moisture_objects_data.xlsx", sep = ""))
+  moisture_objects_tif <- rast(paste(getwd(),"/data/moisture_data/moisture_objects_tif.tif", sep = ""))
+  moisture_objects <- list(moisture_objects_data, moisture_objects_tif)
+}
+quiet(rm(list = c("moisture_objects_tif", "moisture_objects_data", "year", "moisture_xlsx", "df")))
+
+
+##########################################################################
 
 ############## General Functions ##############
 
