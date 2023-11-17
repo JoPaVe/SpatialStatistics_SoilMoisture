@@ -29,7 +29,6 @@ file_storage_path = c("E:/SpacialStatistics_MoistureData/data")
 ############ Data loading:
 source(paste(getwd(), "/DataLoading.R", sep = ""))
 
-############ Data loading:
+############ Data preprocessing:
 source(paste(getwd(), "/Preprocessing.R", sep = ""))
-
 

@@ -165,7 +165,7 @@ group_into_classes <- function(cropyield_df, crop, quantiles, years) {
     
   }
   else {
-    quantiles_cropyield <- cropyield_df |> 
+    cropyield_df_class <- cropyield_df |> 
       dplyr::filter(Year %in% years) |>
       dplyr::select(Year, SAD_ID, Wheat_yield) |>
       dplyr::mutate(class=cut(Wheat_yield, breaks = c(-Inf, quantiles_cropyield[1], quantiles_cropyield[2], Inf), labels = c("low", "normal", "high")))
@@ -247,4 +247,17 @@ merge_SAD_moisture_crop <- function(grouped_crops, moisture_counts_prepared) {
 }
 
 
-
+iterativeCS_wheat <- create_iterativeCS_df(crop =  "Wheat_yield", 
+                                           sequence = "high_to_low", 
+                                           Saskatchewan_cropyield_to_merge, 
+                                           SAD_moisture_filled, 
+                                           2010:2022, 
+                                           c(0,52.4,0.2), 
+                                           c(0.25,0.75))
+iterativeCS_canola <- create_iterativeCS_df(crop =  "Canola_yield", 
+                                           sequence = "high_to_low", 
+                                           Saskatchewan_cropyield_to_merge, 
+                                           SAD_moisture_filled, 
+                                           2010:2022, 
+                                           c(0,52.4,0.2), 
+                                           c(0.25,0.75))
