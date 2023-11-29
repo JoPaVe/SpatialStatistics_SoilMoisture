@@ -27,18 +27,18 @@ years_integer <- as.integer(names(moisture_data))
 crs_tif <- crs(moisture_objects[[2]][[1]]) #Extract crs of first item of .tif pictures (stored as SpatRaster objects)
 
 sf_use_s2(FALSE) # Disable usage of spherical geometry package for geographical coordinate operations as SADRegions2008_2015 has duplicates therwise
-SARRegions2017_crs_transformed <- st_transform(SADRegions2017, crs = crs_tif)
-SARRegions2008_2015_crs_transformed <- st_transform(SADRegions2008_2015, crs = crs_tif)
+SADRegions2017_crs_transformed <- st_transform(SADRegions2017, crs = crs_tif)
+SADRegions2008_2015_crs_transformed <- st_transform(SADRegions2008_2015, crs = crs_tif)
 
 intersected_years_matrices <- list()
-crs_SAR <- crs(SARRegions2017_crs_transformed$Shape)
+crs_SAD <- crs(SADRegions2017_crs_transformed$Shape)
 for (year in 1:length(moisture_data)) {
-    year_sf_obj <- st_as_sf(moisture_data[[year]], coords = c("x","y"), crs = crs_SAR)
+    year_sf_obj <- st_as_sf(moisture_data[[year]], coords = c("x","y"), crs = crs_SAD)
   if (years_integer[year] <= year_of_SAD_change) {
-    intersected_year_values <- st_intersects(year_sf_obj, st_geometry(SARRegions2008_2015_crs_transformed))
+    intersected_year_values <- st_intersects(year_sf_obj, st_geometry(SADRegions2008_2015_crs_transformed))
   }  
   else {
-    intersected_year_values <- st_intersects(year_sf_obj, st_geometry(SARRegions2017_crs_transformed))
+    intersected_year_values <- st_intersects(year_sf_obj, st_geometry(SADRegions2017_crs_transformed))
   }
   intersected_years_matrices[[toString(years_integer[year])]] <- as.matrix(intersected_year_values)
 }
@@ -49,16 +49,16 @@ for (year in 1:length(moisture_data)) {
 
 SAD_moisture <- list()
 
-SARRegions_number_2008_2015 <- dim(SARRegions2008_2015_crs_transformed)[1]
-SARRegions_number_2017 <- dim(SARRegions2017_crs_transformed)[1]
+SADRegions_number_2008_2015 <- dim(SADRegions2008_2015_crs_transformed)[1]
+SADRegions_number_2017 <- dim(SADRegions2017_crs_transformed)[1]
 
 
 for (year in names(moisture_data)) {
   if (as.integer(year) <= year_of_SAD_change) {
-    number_rows <- SARRegions_number_2008_2015
+    number_rows <- SADRegions_number_2008_2015
   }
   else {
-    number_rows <- SARRegions_number_2017
+    number_rows <- SADRegions_number_2017
   }
   SAD_moisture[[year]] <- data.frame(matrix(nrow = number_rows, ncol = dim(moisture_data[[year]])[2]-2))
   colnames(SAD_moisture[[year]]) <- names(moisture_data[[year]][3:dim(moisture_data[[year]])[2]])
@@ -68,10 +68,10 @@ for (year in names(moisture_data)) {
 for (year in names(moisture_data)) {
   year_integer <- as.integer(year)
   if (year_integer <= year_of_SAD_change) {
-    number_rows <- SARRegions_number_2008_2015
+    number_rows <- SADRegions_number_2008_2015
   }
   else {
-    number_rows <- SARRegions_number_2017
+    number_rows <- SADRegions_number_2017
   }
   for (SAD_id in 1:number_rows) {
     mean_vec <- colMeans(subset(moisture_data[[year]], intersected_years_matrices[[year]][,SAD_id]), na.rm = T)
@@ -114,7 +114,7 @@ SAD_moisture_filled <- lapply(SAD_moisture, FUN = fill_missing)
 
 
 ############## Combine crop_yield data with yearly Dataframes of SAD_moisture ###############
-
+#!# Probably not necessary
 # Add column of SAD_id
 Saskatchewan_cropyield <- lapply(Saskatchewan_cropyield, FUN = function(df) {
   df <- df |>
@@ -140,6 +140,37 @@ for (year in names(moisture_data)) {
   SAD_moisture_crop[[year]] <- merge(SAD_moisture_filled[[year]], merge_df_specific_year, by.x = 0, by.y = c("SAD_ID"))
   SAD_moisture_crop[[year]] <- base::subset(SAD_moisture_crop[[year]], select = -c(Row.names))
 }
+
+############## Get summary statistics SADs ###############
+
+# Get summary statistics for 2008_2015
+Saskatchewan_cropyield_summary_to_merge_2008_2015 <- Saskatchewan_cropyield_to_merge |>
+  dplyr::filter(year <= year_of_SAD_change) |>
+  dplyr::group_by(SAD_ID) |>
+  dplyr::summarize(mean_canola = mean(Canola_yield),
+                   mean_wheat = mean(Wheat_yield),
+                   sd_canola = sd(Canola_yield),
+                   sd_wheat = sd(Wheat_yield))
+
+#Add SADRegionUID for merge (differentiate single and double digits)
+Saskatchewan_cropyield_summary_to_merge_2008_2015 <- Saskatchewan_cropyield_summary_to_merge |>
+  dplyr::mutate(SADRegionUID = ifelse(SAD_ID < 10,paste0("470",SAD_ID),paste0("47",SAD_ID)))
+
+
+# Get summary statistics for >2017
+Saskatchewan_cropyield_summary_to_merge_2017 <- Saskatchewan_cropyield_to_merge |>
+  dplyr::filter(year > year_of_SAD_change) |>
+  dplyr::group_by(SAD_ID) |>
+  dplyr::summarize(mean_canola = mean(Canola_yield),
+                   mean_wheat = mean(Wheat_yield),
+                   sd_canola = sd(Canola_yield),
+                   sd_wheat = sd(Wheat_yield))
+
+#Add SADRegionUID for merge (differentiate single and double digits)
+Saskatchewan_cropyield_summary_to_merge_2017 <- Saskatchewan_cropyield_summary_to_merge |>
+  dplyr::mutate(SADRegionUID = ifelse(SAD_ID < 10,paste0("470",SAD_ID),paste0("47",SAD_ID)))
+
+
 
 ############## Create dataframe for Iterative Chisquared ###############
 

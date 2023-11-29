@@ -86,28 +86,32 @@ get_SAD_layers <- function(path, spec = c("SAD2017", "SAD2008_2015")) {
   }
 } 
 
+
 ##########################################################################
 ############# Data loading for all files for preprocessing ###############
 ##########################################################################
 
 ## Shapefiles
-if (!file.exists(paste(getwd(),"/data/shapefiles/SAD2017/SADRegions2017_shape.shp", sep = ""))) {
-  SADRegions2017 <- get_SAD_layers(file_storage_path, "SAD2017")
-  st_write(SADRegions2017, paste(getwd(),"/data/shapefiles/SAD2017/SADRegions2017_shape.shp", sep = ""))
-} else {
-  SADRegions2017 <- st_read(paste(getwd(),"/data/shapefiles/SAD2017/SADRegions2017_shape.shp", sep = ""))
-  names(SADRegions2017)[5] <- "Shape"
-  st_geometry(SADRegions2017) <- "Shape"
-}
+# if (!file.exists(paste(getwd(),"/data/shapefiles/SAD2017/SADRegions2017_shape.shp", sep = ""))) {
+#   SADRegions2017 <- get_SAD_layers(file_storage_path, "SAD2017")
+#   st_write(SADRegions2017, paste(getwd(),"/data/shapefiles/SAD2017/SADRegions2017_shape.shp", sep = ""))
+# } else {
+#   SADRegions2017 <- st_read(paste(getwd(),"/data/shapefiles/SAD2017", sep = ""))
+#   names(SADRegions2017)[5] <- "Shape"
+#   st_geometry(SADRegions2017) <- "Shape"
+# }
+# 
+# if (!file.exists(paste(getwd(),"/data/shapefiles/SAD2008_2015/SADRegions2008_2015_shape.shp", sep = ""))) {
+#   SADRegions2008_2015 <- get_SAD_layers(file_storage_path, "SAD2008_2015")
+#   st_write(SADRegions2017, paste(getwd(),"/data/shapefiles/SAD2008_2015/SADRegions2008_2015_shape.shp", sep = ""))
+# } else {
+#   SADRegions2008_2015 <- st_read(paste(getwd(),"/data/shapefiles/SAD2008_2015", sep = ""))
+#   names(SADRegions2008_2015)[5] <- "Shape"
+#   st_geometry(SADRegions2008_2015) <- "Shape"
+# }
 
-if (!file.exists(paste(getwd(),"/data/shapefiles/SAD2008_2015/SADRegions2008_2015_shape.shp", sep = ""))) {
-  SADRegions2008_2015 <- get_SAD_layers(path, "SAD2008_2015")
-  st_write(SADRegions2017, paste(getwd(),"/data/shapefiles/SAD2008_2015/SADRegions2008_2015_shape.shp", sep = ""))
-} else {
-  SADRegions2008_2015 <- st_read(paste(getwd(),"/data/shapefiles/SAD2008_2015/SADRegions2008_2015_shape.shp", sep = ""))
-  names(SADRegions2008_2015)[5] <- "Shape"
-  st_geometry(SADRegions2008_2015) <- "Shape"
-}
+SADRegions2017 <- st_read(paste(file_storage_path,"/small_area_data_regions.gdb", sep = ""), layer = "SADRegionsRDPI_2017")
+SADRegions2008_2015 <- st_read(paste(file_storage_path,"/small_area_data_regions.gdb", sep = ""), layer = "SADRegionsRDPI_2008_2015")
 
 ## Crop yields
 cropyield_exist <- c(!file.exists(paste(getwd(),"/data/shapefiles/cropyield/canola_cropyields.csv", sep = "")), !file.exists(paste(getwd(),"/data/shapefiles/cropyield/wheat_cropyields.csv", sep = "")))
@@ -147,7 +151,7 @@ if (!file.exists(paste(getwd(),"/data/moisture_data/moisture_objects_data.xlsx",
   moisture_objects_tif <- rast(paste(getwd(),"/data/moisture_data/moisture_objects_tif.tif", sep = ""))
   moisture_objects <- list(moisture_objects_data, moisture_objects_tif)
 }
-quiet(rm(list = c("moisture_objects_tif", "moisture_objects_data", "year", "moisture_xlsx", "df")))
+rm(list = c("moisture_objects_tif", "moisture_objects_data", "year", "moisture_xlsx", "df"))
 
 
 ##########################################################################
