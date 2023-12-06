@@ -1,22 +1,17 @@
-library(rvest)
-library(httr)
-library(xml2)
-library(plyr)
 
-
-extract_all_datafiles <- function(years, start_link) {
+ExtractAllDatafiles <- function(years, start_link) {
   ## Extract all files: 
   ## Arguments:
   ## years        vector containing start and end year (Exp.: c(2010,2022)) 
   ## start_link   string of the start_link
   
-  create_sub_folders(years) 
-  daily_links <- generate_daily_links(years, start_link)
-  download_links_list <- read_download_links(years, daily_links)
-  run_downloads(years, download_links_list) 
+  CreateSubFolders(years) 
+  daily_links <- GenerateDailyLinks(years, start_link)
+  download_links_list <- ReadDownloadLinks(years, daily_links)
+  RunDownloads(years, download_links_list) 
 }
 
-create_sub_folders <- function(years) {
+CreateSubFolders <- function(years) {
   ## Create subfolders for each year in working directory in ./data/'year'.
   
     for (year in years) {
@@ -25,7 +20,7 @@ create_sub_folders <- function(years) {
   
 }
 
-generate_daily_links <- function(years, start_link) {
+GenerateDailyLinks <- function(years, start_link) {
   ## Create vector of links for the daily data for each year.
   
   
@@ -33,7 +28,7 @@ generate_daily_links <- function(years, start_link) {
   return(daily_links)
 }
 
-read_download_links <- function(years, daily_links) {
+ReadDownloadLinks <- function(years, daily_links) {
   ## Create vector of download links for each file that should be downloaded.
   
   return_list <- list()
@@ -51,8 +46,8 @@ read_download_links <- function(years, daily_links) {
   return(return_list)
 }
 
-run_downloads <- function(years, download_links_list) {
-  ## Downloads the files into the respective folder created by create_sub_folders
+RunDownloads <- function(years, download_links_list) {
+  ## Downloads the files into the respective folder created by CreateSubFolders
   years <- seq(years[1],years[2],1)
   lapply(1:length(download_links_list), FUN = function(link_vector_count) {
     sapply(download_links_list[[link_vector_count]], FUN = function(link, folder_year) {
